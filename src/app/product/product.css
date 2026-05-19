@@ -789,9 +789,32 @@
         grid-template-columns: 1fr;
     }
 
+    .similar-product {
+        padding: 30px 0;
+    }
+
+    .similar-product .heading {
+        font-size: 18px;
+        margin-bottom: 20px;
+    }
+
     .similar-grid {
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
+        overflow-x: auto;
         gap: 15px;
+        padding: 5px 0 15px;
+        scroll-snap-type: x mandatory;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Hide scrollbar for Firefox */
+    }
+
+    .similar-grid::-webkit-scrollbar {
+        display: none; /* Hide scrollbar for Chrome/Safari */
+    }
+
+    .similar-grid .trending-card {
+        flex: 0 0 165px;
+        scroll-snap-align: start;
     }
 }
 
