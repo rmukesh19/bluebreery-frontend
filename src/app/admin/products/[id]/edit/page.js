@@ -138,20 +138,26 @@ export default function EditProductPage() {
         body: formData,
       });
       const data = await response.json();
+
+      if (!response.ok) {
+        showToast(data.message || 'Image upload failed', 'error');
+        return;
+      }
+
       const imageUrl = `${API_URLS.BASE}${data.image}`;
 
       if (type === 'sizeChart') {
         setProductData(prev => ({ ...prev, sizeChartImage: imageUrl }));
-        showToast('Size chart image uploaded!', 'success');
+        showToast('Size chart image uploaded successfully!', 'success');
       } else if (variantIndex !== null) {
         const updatedVariants = [...variants];
         updatedVariants[variantIndex].images = [...(updatedVariants[variantIndex].images || []), imageUrl];
         setVariants(updatedVariants);
-        showToast('Variant image uploaded!', 'success');
+        showToast('Variant image uploaded successfully!', 'success');
       }
     } catch (error) {
       console.error('Upload failed:', error);
-      showToast('Image upload failed', 'error');
+      showToast('Network error: Could not upload image.', 'error');
     } finally {
       setUploading({ sizeChart: false, variant: null });
     }
