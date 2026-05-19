@@ -258,32 +258,6 @@ export default function Home() {
                     }}>
                       {cat.name}
                     </span>
-                    {/* Dynamic premium badges matching user's screenshot */}
-                    {cat.name.toLowerCase().includes('cargo') && (
-                      <span style={{ fontSize: '9px', fontWeight: '700', color: '#ff5252', border: '1px solid #ff5252', padding: '2px 8px', borderRadius: '12px', background: '#fff2f2' }}>
-                        3XL TO 6XL
-                      </span>
-                    )}
-                    {cat.name.toLowerCase().includes('trouser') && (
-                      <span style={{ fontSize: '9px', fontWeight: '700', color: '#00c853', border: '1px solid #00c853', padding: '2px 8px', borderRadius: '12px', background: '#e8f5e9' }}>
-                        HOT
-                      </span>
-                    )}
-                    {cat.name.toLowerCase().includes('jean') && (
-                      <span style={{ fontSize: '9px', fontWeight: '700', color: '#ff6d00', border: '1px solid #ff6d00', padding: '2px 8px', borderRadius: '12px', background: '#fff3e0' }}>
-                        POPULAR
-                      </span>
-                    )}
-                    {cat.name.toLowerCase().includes('polo') && (
-                      <span style={{ fontSize: '9px', fontWeight: '700', color: '#2979ff', border: '1px solid #2979ff', padding: '2px 8px', borderRadius: '12px', background: '#e3f2fd' }}>
-                        BESTSELLER
-                      </span>
-                    )}
-                    {cat.name.toLowerCase().includes('shoe') && (
-                      <span style={{ fontSize: '9px', fontWeight: '700', color: '#d500f9', border: '1px solid #d500f9', padding: '2px 8px', borderRadius: '12px', background: '#fce4ec' }}>
-                        JUST LAUNCHED
-                      </span>
-                    )}
                   </div>
 
                   {/* Centered contained Image inside a gradient container */}
