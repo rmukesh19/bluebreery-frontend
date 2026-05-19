@@ -344,7 +344,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Combos Section */}
+      {/* Combos Section (Hidden as requested)
       <section className="home-section">
         <div className="section-header">
           <h2 style={{ color: 'var(--dark-text)' }}>ULTIMATE SAVING COMBOS</h2>
@@ -367,8 +367,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+      */}
 
-      {/* Savings Corner */}
+      {/* Savings Corner (Hidden as requested)
       <section className="home-section">
         <div className="section-header">
           <h2 style={{ color: 'var(--dark-text)' }}>SAVINGS CORNER</h2>
@@ -393,6 +394,7 @@ export default function Home() {
           ))}
         </div>
       </section>
+      */}
 
       {/* Trending Section */}
       <section ref={trendingRef} className="home-section">
