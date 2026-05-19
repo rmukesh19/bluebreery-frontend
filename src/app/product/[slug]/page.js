@@ -6,7 +6,7 @@ import { getProductBySlug } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { useRouter, useParams } from 'next/navigation';
 import { Maximize, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { API_URLS, API_BASE_URL } from '@/utils/api';
+import { API_URLS, API_BASE_URL, resolveImageUrl } from '@/utils/api';
 
 
 export default function ProductPage() {
