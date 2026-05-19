@@ -272,9 +272,10 @@ export default function ProductPage() {
                   <h3>Product Description</h3>
                   <span>{expandedSection === 'description' ? '−' : '+'}</span>
                 </div>
-                <div className={`pdpcontent ${expandedSection === 'description' ? 'show' : ''}`}>
-                  <p>{product.description}</p>
-                </div>
+                <div 
+                  className={`pdpcontent pdp-rich-description ${expandedSection === 'description' ? 'show' : ''}`}
+                  dangerouslySetInnerHTML={{ __html: product.description || 'No description available.' }}
+                />
               </div>
 
               <div className="desc-main">
