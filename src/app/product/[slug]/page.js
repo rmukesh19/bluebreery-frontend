@@ -367,8 +367,8 @@ export default function ProductPage() {
               { name: "White Summer Polo", price: 749, slug: "grey-acid-wash-polo-t-shirt", img: "https://www.beyoung.in/api/cache/catalog/products/shirts/2026/oxford_stripe/beige_oxford_striped_shirt_base_400x533.jpg" }
             ]).map((item, i) => (
               <Link key={i} href={`/product/${item.slug || 'grey-acid-wash-polo-t-shirt'}`} className="trending-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-                <div style={{ position: 'relative', paddingTop: '133%', overflow: 'hidden', borderRadius: '10px' }}>
-                  <img src={resolveImageUrl(item.images?.[0]) || resolveImageUrl(item.img)} alt={item.name} style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }} />
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', overflow: 'hidden', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
+                  <img src={resolveImageUrl(item.images?.[0]) || resolveImageUrl(item.img)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <h4 style={{ fontSize: '15px', margin: '15px 0 5px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h4>
                 <p style={{ fontWeight: '800', color: '#212121', fontSize: '16px' }}>₹{item.price}</p>
