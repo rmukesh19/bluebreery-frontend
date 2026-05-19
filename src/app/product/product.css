@@ -694,18 +694,35 @@
 }
 
 @keyframes slideIn {
-    from { transform: translateX(-100%); }
-    to { transform: translateX(0); }
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
 }
 
 @keyframes slideUp {
-    from { transform: translate(-50%, 50px); opacity: 0; }
-    to { transform: translate(-50%, 0); opacity: 1; }
+    from {
+        transform: translate(-50%, 50px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, 0);
+        opacity: 1;
+    }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
 /* Responsive */
@@ -730,7 +747,7 @@
         gap: 10px;
         background: #fff;
         cursor: pointer;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
 
     .mobile-filter-trigger span {
@@ -789,32 +806,9 @@
         grid-template-columns: 1fr;
     }
 
-    .similar-product {
-        padding: 30px 0;
-    }
-
-    .similar-product .heading {
-        font-size: 18px;
-        margin-bottom: 20px;
-    }
-
     .similar-grid {
-        display: flex;
-        overflow-x: auto;
+        grid-template-columns: repeat(2, 1fr);
         gap: 15px;
-        padding: 5px 0 15px;
-        scroll-snap-type: x mandatory;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none; /* Hide scrollbar for Firefox */
-    }
-
-    .similar-grid::-webkit-scrollbar {
-        display: none; /* Hide scrollbar for Chrome/Safari */
-    }
-
-    .similar-grid .trending-card {
-        flex: 0 0 165px;
-        scroll-snap-align: start;
     }
 }
 
@@ -829,6 +823,11 @@
 }
 
 @keyframes pdp-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
