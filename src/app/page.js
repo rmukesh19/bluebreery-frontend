@@ -302,9 +302,6 @@ export default function Home() {
             <Link key={loading ? idx : item._id} href={`/product/${item.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
                 <img src={resolveImageUrl(item.images?.[0]) || 'https://via.placeholder.com/300'} alt={item.name} />
-                <div style={{ position: 'absolute', top: '15px', right: '15px', background: '#fff', padding: '5px 15px', borderRadius: '20px', fontSize: '11px', fontWeight: '900', color: '#000', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  {item.badge || 'Linen'}
-                </div>
               </div>
               <div className="premium-card-info">
                 <h3>{item.name}</h3>
@@ -382,9 +379,6 @@ export default function Home() {
             <Link key={loading ? idx : item._id} href={`/product/${item.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
                 <img src={resolveImageUrl(item.images?.[0]) || 'https://via.placeholder.com/300'} alt={item.name} />
-                <div style={{ position: 'absolute', top: '15px', right: '15px', background: '#fff', padding: '5px 15px', borderRadius: '20px', fontSize: '11px', fontWeight: '900', color: '#000', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  {item.badge || 'Trending'}
-                </div>
               </div>
               <div className="premium-card-info">
                 <h3>{item.name}</h3>
@@ -502,9 +496,6 @@ export default function Home() {
             <Link key={loading ? idx : product._id} href={`/product/${product.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
                 <img src={resolveImageUrl(product.images?.[0]) || 'https://via.placeholder.com/300'} alt={product.name} />
-                <div style={{ position: 'absolute', top: '15px', right: '15px', background: '#fff', padding: '5px 15px', borderRadius: '20px', fontSize: '11px', fontWeight: '900', color: '#000', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}>
-                  {product.badge || 'Style'}
-                </div>
               </div>
               <div className="premium-card-info">
                 <h3>{product.name}</h3>

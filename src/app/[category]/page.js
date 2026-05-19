@@ -1,6 +1,7 @@
 "use client";
-import { use, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Filter, X } from 'lucide-react';
 import FilterSidebar from '@/components/FilterSidebar';
 import { API_URLS, API_BASE_URL, resolveImageUrl } from '@/utils/api';
@@ -27,9 +28,9 @@ const generateProducts = (categoryName) => {
   }));
 };
 
-export default function CategoryPage({ params: paramsPromise }) {
-  const params = use(paramsPromise);
-  const { category } = params;
+export default function CategoryPage() {
+  const params = useParams();
+  const category = params?.category;
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);

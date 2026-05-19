@@ -4,14 +4,14 @@ import Link from 'next/link';
 import '../product.css';
 import { getProductBySlug } from '@/data/products';
 import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 import { Maximize, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { API_URLS, API_BASE_URL } from '@/utils/api';
 
 
-export default function ProductPage({ params: paramsPromise }) {
-  const params = use(paramsPromise);
-  const slug = params.slug;
+export default function ProductPage() {
+  const params = useParams();
+  const slug = params?.slug;
 
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
