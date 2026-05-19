@@ -4,11 +4,11 @@ const getBaseUrl = () => {
   }
   if (typeof window !== 'undefined') {
     if (!window.location.hostname.includes('localhost')) {
-      return 'https://bluebueery-backend.onrender.com';
+      return 'https://bluebreery-backend-1.onrender.com';
     }
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'https://bluebueery-backend.onrender.com';
+    return 'https://bluebreery-backend-1.onrender.com';
   }
   return 'http://localhost:5001';
 };
