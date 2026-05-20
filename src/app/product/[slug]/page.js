@@ -147,7 +147,7 @@ export default function ProductPage() {
 
   const displayImages = Array.isArray(product.images) && product.images.length > 0
     ? product.images.map(img => resolveImageUrl(img))
-    : ['https://via.placeholder.com/600x800'];
+    : [product.category?.toLowerCase().includes('pant') || product.category?.toLowerCase().includes('jeans') || product.category?.toLowerCase().includes('cargo') ? '/product_jeans.png' : '/product_shirt.png'];
 
   const displaySizes = Array.isArray(product.sizes) && product.sizes.length > 0 
     ? product.sizes 

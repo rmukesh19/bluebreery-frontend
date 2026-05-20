@@ -34,6 +34,15 @@ export const API_URLS = {
 export const resolveImageUrl = (url) => {
   if (!url) return '';
   
+  // Gracefully correct file extension mismatches for local banner assets (.jpeg/.jpg -> .png)
+  if (url.includes('/images/banners/')) {
+    if (url.endsWith('.jpeg')) {
+      url = url.replace('.jpeg', '.png');
+    } else if (url.endsWith('.jpg')) {
+      url = url.replace('.jpg', '.png');
+    }
+  }
+  
   // Extract path if it contains '/uploads/' (handles localhost, custom domains, or malformed URLs)
   if (url.includes('/uploads/')) {
     const uploadPath = url.substring(url.indexOf('/uploads/'));

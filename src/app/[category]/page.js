@@ -6,6 +6,13 @@ import { Filter, X } from 'lucide-react';
 import FilterSidebar from '@/components/FilterSidebar';
 import { API_URLS, API_BASE_URL, resolveImageUrl } from '@/utils/api';
 
+const getProductFallbackImage = (prodName) => {
+  const name = (prodName || '').toLowerCase();
+  if (name.includes('shirt')) return '/product_shirt.png';
+  if (name.includes('trouser') || name.includes('pant') || name.includes('cargo') || name.includes('jeans') || name.includes('bottom')) return '/product_jeans.png';
+  return '/product_tshirt.png';
+};
+
 
 const productImageUrls = [
   "https://images-home.beyoung.in/Shirts_category_section_03751efdd8.jpg",
@@ -132,7 +139,7 @@ export default function CategoryPage() {
                 <Link key={loading ? i : product._id} href={`/product/${product.slug}`} className="product-card-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className="product-image-box" style={{ position: 'relative', width: '100%', aspectRatio: '2/3', overflow: 'hidden', borderRadius: '12px', backgroundColor: '#f9f9f9', transition: 'all 0.4s ease' }}>
                     <img 
-                      src={resolveImageUrl(product.images?.[0]) || 'https://via.placeholder.com/300'} 
+                      src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} 
                       alt={product.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease' }}
                     />
@@ -191,7 +198,7 @@ export default function CategoryPage() {
             display: flex !important;
           }
           .category-container {
-            padding: 100px 15px 40px !important;
+            padding: 175px 15px 40px !important;
           }
         }
       `}</style>

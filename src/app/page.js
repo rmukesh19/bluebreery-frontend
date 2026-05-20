@@ -6,6 +6,21 @@ import { X, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import './home.css';
 import { API_URLS, resolveImageUrl } from '@/utils/api';
 
+const getCategoryFallbackImage = (catName) => {
+  const name = (catName || '').toLowerCase();
+  if (name.includes('shirt')) return '/product_shirt.png';
+  if (name.includes('trouser') || name.includes('pant') || name.includes('cargo') || name.includes('bottom')) return '/product_jeans.png';
+  if (name.includes('jeans')) return '/product_jeans.png';
+  if (name.includes('polo') || name.includes('t-shirt') || name.includes('tee')) return '/product_tshirt.png';
+  return '/mens_category.png'; // Global default
+};
+
+const getProductFallbackImage = (prodName) => {
+  const name = (prodName || '').toLowerCase();
+  if (name.includes('shirt')) return '/product_shirt.png';
+  if (name.includes('trouser') || name.includes('pant') || name.includes('cargo') || name.includes('jeans') || name.includes('bottom')) return '/product_jeans.png';
+  return '/product_tshirt.png';
+};
 
 export default function Home() {
   const combosRef = useRef(null);
@@ -273,7 +288,7 @@ export default function Home() {
                     position: 'relative'
                   }}>
                     <img 
-                      src={resolveImageUrl(cat.image) || "https://via.placeholder.com/300x400"} 
+                      src={resolveImageUrl(cat.image) || getCategoryFallbackImage(cat.name)} 
                       alt={cat.name} 
                       style={{ 
                         maxWidth: '90%', 
@@ -301,7 +316,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : displayShirts).map((item, idx) => (
             <Link key={loading ? idx : item._id} href={`/product/${item.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(item.images?.[0]) || 'https://via.placeholder.com/300'} alt={item.name} />
+                <img src={resolveImageUrl(item.images?.[0]) || getProductFallbackImage(item.name)} alt={item.name} />
               </div>
               <div className="premium-card-info">
                 <h3>{item.name}</h3>
@@ -378,7 +393,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : (Array.isArray(products) ? products.slice(0, 4) : [])).map((item, idx) => (
             <Link key={loading ? idx : item._id} href={`/product/${item.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(item.images?.[0]) || 'https://via.placeholder.com/300'} alt={item.name} />
+                <img src={resolveImageUrl(item.images?.[0]) || getProductFallbackImage(item.name)} alt={item.name} />
               </div>
               <div className="premium-card-info">
                 <h3>{item.name}</h3>
@@ -471,7 +486,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : (Array.isArray(products) ? products.slice(4, 8) : [])).map((product, idx) => (
             <Link key={loading ? idx : product._id} href={`/product/${product.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(product.images?.[0]) || 'https://via.placeholder.com/300'} alt={product.name} />
+                <img src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} alt={product.name} />
               </div>
               <div className="premium-card-info">
                 <h3>{product.name}</h3>
@@ -495,7 +510,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : displayBottoms).map((product, idx) => (
             <Link key={loading ? idx : product._id} href={`/product/${product.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(product.images?.[0]) || 'https://via.placeholder.com/300'} alt={product.name} />
+                <img src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} alt={product.name} />
               </div>
               <div className="premium-card-info">
                 <h3>{product.name}</h3>

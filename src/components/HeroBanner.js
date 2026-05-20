@@ -22,7 +22,7 @@ const slides = [
     href: '/topwear/shirts',
   },
   {
-    img: '/images/banners/streetwear-portrait.jpeg',
+    img: '/images/banners/streetwear-portrait.png',
     category: 'TRENDING',
     title: 'URBAN ESSENTIALS',
     cta: 'EXPLORE',
