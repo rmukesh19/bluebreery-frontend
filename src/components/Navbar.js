@@ -876,6 +876,7 @@ export default function Navbar() {
 
               -webkit-overflow-scrolling: touch;
               scrollbar-width: none;
+              padding: 0px !important;
             }
 
             .desktop-nav-list::-webkit-scrollbar {
@@ -1256,7 +1257,7 @@ export default function Navbar() {
             }
             .mega-menu {
               position: fixed;
-              top: 110px !important;
+              top: 120px !important;
               left: 0 !important;
               right: 0 !important;
               width: 100vw !important;
@@ -1323,8 +1324,8 @@ export default function Navbar() {
             }
 
             .header {
-              margin-top: 60px;
-              height: 50px;
+              margin-top: 75px;
+              height: 45px;
             }
             .container-fluid{
               gap: 0px;
