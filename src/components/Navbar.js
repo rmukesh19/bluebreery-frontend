@@ -28,6 +28,7 @@ export default function Navbar() {
 
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
+  const [activeCategoryDropdown, setActiveCategoryDropdown] = useState(null);
 
   useEffect(() => {
     const fetchNavData = async () => {
@@ -50,6 +51,24 @@ export default function Navbar() {
     };
 
     fetchNavData();
+  }, []);
+
+  const handleCategoryClick = (e, categoryName, hasSubs) => {
+    if (window.innerWidth <= 1024 && hasSubs) {
+      e.preventDefault();
+      e.stopPropagation();
+      setActiveCategoryDropdown((prev) => (prev === categoryName ? null : categoryName));
+    }
+  };
+
+  useEffect(() => {
+    const handleOutsideClick = () => {
+      setActiveCategoryDropdown(null);
+    };
+    document.addEventListener("click", handleOutsideClick);
+    return () => {
+      document.removeEventListener("click", handleOutsideClick);
+    };
   }, []);
 
   /* =========================
@@ -466,28 +485,6 @@ export default function Navbar() {
             <span className="text-black underline cursor-pointer"
               style={{ textDecoration: 'underline' }}>to check delivery</span>
           </div> */}
-          <div
-            style={{
-              fontSize: "13px",
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: "5px",
-            }}
-            className="pincodeParent"
-
-            onClick={() => setShowPincodePopup(true)}
-          >
-            <span style={{ fontWeight: "bold" }}>
-              {savedPincode ? `Pincode ${savedPincode} -` : "Enter Pincode -"}
-            </span>
-
-            <span
-              style={{ textDecoration: "underline" }}
-            >
-              {savedPincode ? "Change Pincode" : "to check delivery"}
-            </span>
-          </div>
           <Sheet
             isOpen={showPincodePopup}
             onClose={() => setShowPincodePopup(false)}
@@ -596,11 +593,12 @@ export default function Navbar() {
                 return (
                   <li
                     key={category._id}
-                    className={hasSubs ? "has-mega-menu" : ""}
+                    className={`${hasSubs ? "has-mega-menu" : ""} ${activeCategoryDropdown === category.name ? "active-dropdown" : ""}`}
                   >
                     <Link
                       href={`/${category.name.toLowerCase().replace(/\s+/g, "-")}`}
                       className="desktop-nav-link"
+                      onClick={(e) => handleCategoryClick(e, category.name, hasSubs)}
                     >
                       {category.name}
                       {hasSubs && <ChevronDown size={14} className="nav-arrow" />}
@@ -613,6 +611,7 @@ export default function Navbar() {
                               <li key={sub._id}>
                                 <Link
                                   href={`/${category.name.toLowerCase().replace(/\s+/g, "-")}/${sub.name.toLowerCase().replace(/\s+/g, "-")}`}
+                                  onClick={() => setActiveCategoryDropdown(null)}
                                 >
                                   {sub.name}
                                 </Link>
@@ -1244,10 +1243,51 @@ export default function Navbar() {
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
           }
 
-          .has-mega-menu:hover .mega-menu {
+          .has-mega-menu:hover .mega-menu,
+          .has-mega-menu.active-dropdown .mega-menu {
             opacity: 1;
             visibility: visible;
             transform: translateX(-50%) translateY(0);
+          }
+
+          @media (max-width: 1024px) {
+            .has-mega-menu.active-dropdown .mega-menu {
+              transform: none !important;
+            }
+            .mega-menu {
+              position: fixed;
+              top: 110px !important;
+              left: 0 !important;
+              right: 0 !important;
+              width: 100vw !important;
+              min-width: 100vw !important;
+              transform: none !important;
+              padding: 15px 20px !important;
+              z-index: 9999 !important;
+              box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+              border-top: 1px solid #f0f0f0 !important;
+              border-bottom: 1px solid #e0e0e0 !important;
+            }
+            .mega-column ul {
+              display: flex !important;
+              flex-wrap: wrap !important;
+              gap: 12px !important;
+              justify-content: center !important;
+              padding: 0 !important;
+            }
+            .mega-column li {
+              margin: 0 !important;
+            }
+            .mega-column a {
+              display: block !important;
+              padding: 8px 16px !important;
+              background: #f5f5f5 !important;
+              border-radius: 20px !important;
+              font-size: 13px !important;
+              font-weight: 600 !important;
+              text-transform: capitalize !important;
+              color: #333 !important;
+            }
           }
 
           .mega-column ul {
@@ -1284,14 +1324,11 @@ export default function Navbar() {
 
             .header {
               margin-top: 60px;
-              height: 100px;
+              height: 50px;
             }
             .container-fluid{
-              gap: 10px;
+              gap: 0px;
             }
-              .pincodeParent {
-    margin-top: 22px;
-}
           }
 
           /* =========================
