@@ -91,7 +91,7 @@ export default function CategoryPage() {
 
   return (
     <div className="category-page-main">
-      <div className="category-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '100px 20px 60px' }}>
+      <div className="category-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '20px 20px 60px' }}>
         
         {/* Breadcrumbs */}
         <div style={{ fontSize: '12px', color: '#888', marginBottom: '30px', textTransform: 'capitalize', letterSpacing: '0.5px' }}>
@@ -198,7 +198,7 @@ export default function CategoryPage() {
             display: flex !important;
           }
           .category-container {
-            padding: 175px 15px 40px !important;
+            padding: 20px 15px 40px !important;
           }
         }
       `}</style>
