@@ -25,11 +25,16 @@ export default function ProductPage() {
   const [zoomStyle, setZoomStyle] = useState({});
   const [touchStartDist, setTouchStartDist] = useState(null);
   const [showLightbox, setShowLightbox] = useState(false);
-  const [lightboxZoom, setLightboxZoom] = useState(1);
+  const [lightboxScale, setLightboxScale] = useState(1);
+  const [lightboxTouchStartDist, setLightboxTouchStartDist] = useState(null);
   const [similarProducts, setSimilarProducts] = useState([]);
 
   const router = useRouter();
   const { addToCart } = useCart();
+
+  useEffect(() => {
+    setLightboxScale(1);
+  }, [activeImage, showLightbox]);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -206,6 +211,40 @@ export default function ProductPage() {
       transformOrigin: 'center',
       transform: 'scale(1)'
     });
+  };
+
+  const handleLightboxTouchStart = (e) => {
+    if (e.touches && e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setLightboxTouchStartDist(dist);
+    }
+  };
+
+  const handleLightboxTouchMove = (e) => {
+    if (e.touches && e.touches.length === 2 && lightboxTouchStartDist) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = dist / lightboxTouchStartDist;
+      const newScale = Math.min(Math.max(1, factor * lightboxScale), 4);
+      setLightboxScale(newScale);
+    }
+  };
+
+  const handleLightboxTouchEnd = () => {
+    setLightboxTouchStartDist(null);
+  };
+
+  const toggleLightboxZoom = () => {
+    if (lightboxScale > 1) {
+      setLightboxScale(1);
+    } else {
+      setLightboxScale(2.5);
+    }
   };
 
   const toggleSection = (section) => {
@@ -555,16 +594,29 @@ export default function ProductPage() {
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px 30px', color: '#fff', alignItems: 'center' }}>
             <div style={{ fontSize: '16px', fontWeight: '600' }}>{safeActiveImage + 1} / {displayImages.length}</div>
             <div style={{ display: 'flex', gap: '20px' }}>
-              <Maximize size={24} style={{ cursor: 'pointer' }} onClick={() => setLightboxZoom(prev => prev === 1 ? 2 : 1)} />
-              <X size={28} style={{ cursor: 'pointer' }} onClick={() => { setShowLightbox(false); setLightboxZoom(1); }} />
+              <Maximize size={24} style={{ cursor: 'pointer' }} onClick={toggleLightboxZoom} />
+              <X size={28} style={{ cursor: 'pointer' }} onClick={() => { setShowLightbox(false); }} />
             </div>
           </div>
 
           {/* Main Content */}
-          <div style={{ flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto' }}>
+          <div 
+            style={{ 
+              flex: 1, 
+              position: 'relative', 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              overflow: 'auto',
+              WebkitOverflowScrolling: 'touch'
+            }}
+            onTouchStart={handleLightboxTouchStart}
+            onTouchMove={handleLightboxTouchMove}
+            onTouchEnd={handleLightboxTouchEnd}
+          >
             <button 
-              onClick={() => { setActiveImage(prev => prev > 0 ? prev - 1 : displayImages.length - 1); setLightboxZoom(1); }}
-              style={{ position: 'fixed', left: '40px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '20px', zIndex: 10 }}
+              onClick={() => { setActiveImage(prev => prev > 0 ? prev - 1 : displayImages.length - 1); }}
+              style={{ position: 'fixed', left: '20px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '20px', zIndex: 10 }}
             >
               <ChevronLeft size={40} />
             </button>
@@ -573,19 +625,21 @@ export default function ProductPage() {
               src={displayImages[safeActiveImage]} 
               alt="Fullscreen Product" 
               style={{ 
-                maxHeight: '85vh', 
-                maxWidth: '80vw', 
+                maxHeight: `${85 * lightboxScale}vh`, 
+                maxWidth: `${80 * lightboxScale}vw`,
+                width: lightboxScale > 1 ? `${80 * lightboxScale}vw` : 'auto',
+                height: lightboxScale > 1 ? `${85 * lightboxScale}vh` : 'auto',
                 objectFit: 'contain',
-                transform: `scale(${lightboxZoom})`,
-                transition: 'transform 0.3s ease',
-                cursor: lightboxZoom === 1 ? 'zoom-in' : 'zoom-out'
+                transition: 'width 0.2s ease, height 0.2s ease, max-width 0.2s ease, max-height 0.2s ease',
+                cursor: lightboxScale === 1 ? 'zoom-in' : 'zoom-out',
+                margin: 'auto'
               }} 
-              onClick={() => setLightboxZoom(prev => prev === 1 ? 2 : 1)}
+              onClick={toggleLightboxZoom}
             />
 
             <button 
-              onClick={() => { setActiveImage(prev => prev < displayImages.length - 1 ? prev + 1 : 0); setLightboxZoom(1); }}
-              style={{ position: 'fixed', right: '40px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '20px', zIndex: 10 }}
+              onClick={() => { setActiveImage(prev => prev < displayImages.length - 1 ? prev + 1 : 0); }}
+              style={{ position: 'fixed', right: '20px', top: '50%', transform: 'translateY(-50%)', background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer', padding: '20px', zIndex: 10 }}
             >
               <ChevronRight size={40} />
             </button>
