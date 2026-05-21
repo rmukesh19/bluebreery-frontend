@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Plus, Search, Edit2, Trash2, Filter, X } from 'lucide-react';
-import { API_URLS } from '@/utils/api';
+import { API_URLS, handleImageError } from '@/utils/api';
 import { useToast } from '@/context/ToastContext';
 
 export default function Products() {
@@ -14,6 +14,13 @@ export default function Products() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [productToDelete, setProductToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   const fetchProducts = async () => {
     try {
@@ -36,6 +43,17 @@ export default function Products() {
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.slug && p.slug.toLowerCase().includes(searchTerm.toLowerCase()))
   ) : [];
+
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage) || 1;
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, filteredProducts.length);
+  const currentProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [productList, totalPages, currentPage]);
 
   const handleDeleteClick = (product) => {
     setProductToDelete(product);
@@ -124,15 +142,15 @@ export default function Products() {
             <tbody>
               {loading ? (
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: '50px' }}>Loading products...</td></tr>
-              ) : filteredProducts.length === 0 ? (
+              ) : currentProducts.length === 0 ? (
                 <tr><td colSpan="6" style={{ textAlign: 'center', padding: '50px' }}>No products found</td></tr>
-              ) : filteredProducts.map((product) => (
+              ) : currentProducts.map((product) => (
                 <tr key={product._id}>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                       <div style={{ width: '45px', height: '45px', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#f0f0f0' }}>
                         {product.images && product.images[0] ? (
-                          <img src={product.images[0]} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={product.images[0]} alt={product.name} onError={(e) => handleImageError(e, 'product')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ccc', fontSize: '10px' }}>IMG</div>
                         )}
@@ -173,7 +191,7 @@ export default function Products() {
           </table>
         </div>
 
-        {/* Pagination Placeholder */}
+        {/* Pagination Section */}
         <div style={{
           padding: '20px 25px',
           borderTop: '1px solid var(--border-color)',
@@ -183,11 +201,43 @@ export default function Products() {
           fontSize: '14px',
           color: 'var(--gray-text)'
         }}>
-          <div>Showing 1 to {filteredProducts.length} of {filteredProducts.length} entries</div>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="btn-secondary" onClick={() => showToast('No previous page', 'info')} style={{ padding: '6px 12px' }}>Previous</button>
-            <button className="btn-primary" style={{ padding: '6px 12px' }}>1</button>
-            <button className="btn-secondary" onClick={() => showToast('No more pages', 'info')} style={{ padding: '6px 12px' }}>Next</button>
+          <div>Showing {filteredProducts.length === 0 ? 0 : startIndex + 1} to {endIndex} of {filteredProducts.length} entries</div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <button 
+              className="btn-secondary" 
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} 
+              disabled={currentPage === 1}
+              style={{ padding: '6px 12px', cursor: currentPage === 1 ? 'not-allowed' : 'pointer', opacity: currentPage === 1 ? 0.5 : 1 }}
+            >
+              Previous
+            </button>
+            
+            {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+              <button
+                key={pageNum}
+                className={currentPage === pageNum ? "btn-primary" : "btn-secondary"}
+                onClick={() => setCurrentPage(pageNum)}
+                style={{ 
+                  padding: '6px 12px', 
+                  minWidth: '35px',
+                  cursor: 'pointer',
+                  backgroundColor: currentPage === pageNum ? 'var(--primary-color)' : '#fff',
+                  borderColor: currentPage === pageNum ? 'var(--primary-color)' : 'var(--border-color)',
+                  color: currentPage === pageNum ? '#fff' : 'var(--dark-text)'
+                }}
+              >
+                {pageNum}
+              </button>
+            ))}
+
+            <button 
+              className="btn-secondary" 
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} 
+              disabled={currentPage === totalPages}
+              style={{ padding: '6px 12px', cursor: currentPage === totalPages ? 'not-allowed' : 'pointer', opacity: currentPage === totalPages ? 0.5 : 1 }}
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>

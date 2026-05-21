@@ -8,7 +8,7 @@ import { Sheet } from "react-modal-sheet";
 import logo from "@/images/blueberry-logo-Photoroom.png";
 
 import { X, ChevronDown } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { API_URLS } from "@/utils/api";
 
 
@@ -75,12 +75,12 @@ export default function Navbar() {
      SEARCH PLACEHOLDER SLIDER
   ========================= */
 
-  const placeholders = [
+  const [placeholders, setPlaceholders] = useState([
     'Search "PINK SHIRTS"',
     'Search "POLO SHIRTS"',
     'Search "LINEN SHIRTS"',
     'Search "WHITE SHIRTS"',
-  ];
+  ]);
 
   const [activePlaceholder, setActivePlaceholder] = useState(0);
   const [searchValue, setSearchValue] = useState("");
@@ -88,6 +88,87 @@ export default function Navbar() {
   const [pincode, setPincode] = useState("");
   const [savedPincode, setSavedPincode] = useState("");
   const [deliveryMessage, setDeliveryMessage] = useState("");
+
+  const router = useRouter();
+  const [allProducts, setAllProducts] = useState([]);
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchAllProducts = async () => {
+      try {
+        setSearchLoading(true);
+        const res = await fetch(API_URLS.PRODUCTS);
+        if (res.ok) {
+          const data = await res.json();
+          setAllProducts(Array.isArray(data) ? data : []);
+        }
+      } catch (err) {
+        console.error("Error fetching search products:", err);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+    fetchAllProducts();
+  }, []);
+
+  // Dynamically compute placeholder suggestions from actual products
+  useEffect(() => {
+    if (Array.isArray(allProducts) && allProducts.length > 0) {
+      const dynamicList = [];
+      
+      // 1. Get unique categories
+      const categories = [...new Set(allProducts.map(p => p.category).filter(Boolean))];
+      categories.slice(0, 2).forEach(cat => {
+        dynamicList.push(`Search "${cat.toUpperCase()}"`);
+      });
+
+      // 2. Get unique subcategories
+      const subcategories = [...new Set(allProducts.map(p => p.subcategory).filter(Boolean))];
+      subcategories.slice(0, 2).forEach(sub => {
+        dynamicList.push(`Search "${sub.toUpperCase()}"`);
+      });
+
+      // 3. Get some product names
+      const names = allProducts.map(p => p.name).filter(Boolean);
+      names.slice(0, 3).forEach(name => {
+        // Truncate name if it is too long for the slider
+        const shortName = name.length > 20 ? name.substring(0, 20) + "..." : name;
+        dynamicList.push(`Search "${shortName.toUpperCase()}"`);
+      });
+
+      if (dynamicList.length > 0) {
+        setPlaceholders(dynamicList);
+      }
+    }
+  }, [allProducts]);
+
+  useEffect(() => {
+    if (!searchValue.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    const query = searchValue.toLowerCase();
+    const filtered = allProducts.filter(p => 
+      (p.name && p.name.toLowerCase().includes(query)) ||
+      (p.category && p.category.toLowerCase().includes(query)) ||
+      (p.brand && p.brand.toLowerCase().includes(query))
+    );
+    setSearchResults(filtered.slice(0, 5));
+  }, [searchValue, allProducts]);
+
+  const handleSearchSubmit = () => {
+    if (searchValue.trim()) {
+      setShowSearchPopup(false);
+      router.push(`/search?q=${encodeURIComponent(searchValue.trim())}`);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearchSubmit();
+    }
+  };
 
   useEffect(() => {
     if (searchValue.length > 0) return;
@@ -99,7 +180,7 @@ export default function Navbar() {
     }, 2200);
 
     return () => clearInterval(interval);
-  }, [searchValue]);
+  }, [searchValue, placeholders.length]);
 
   /* CLOSE SEARCH POPUP OUTSIDE CLICK */
 
@@ -232,7 +313,7 @@ export default function Navbar() {
                   className="search-box"
                   onClick={() => setShowSearchPopup(true)}
                 >
-                  <div className="search-icon">
+                  <div className="search-icon" onClick={handleSearchSubmit} style={{ cursor: "pointer" }}>
                     <svg
                       width="22"
                       height="22"
@@ -253,6 +334,7 @@ export default function Navbar() {
                     className="search-input"
                     value={searchValue}
                     onChange={(e) => setSearchValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
                   />
 
                   {searchValue === "" && (
@@ -290,7 +372,7 @@ export default function Navbar() {
                     <div
                       className="search-box"
                     >
-                      <div className="search-icon">
+                      <div className="search-icon" onClick={handleSearchSubmit} style={{ cursor: "pointer" }}>
                         <svg
                           width="22"
                           height="22"
@@ -311,6 +393,7 @@ export default function Navbar() {
                         className="search-input"
                         value={searchValue}
                         onChange={(e) => setSearchValue(e.target.value)}
+                        onKeyDown={handleKeyDown}
                       />
 
                       {searchValue === "" && (
@@ -348,7 +431,15 @@ export default function Navbar() {
                         "FORMAL SHIRTS",
                         "BAGGY JEANS",
                       ].map((item, index) => (
-                        <div className="search-chip" key={index}>
+                        <div 
+                          className="search-chip" 
+                          key={index}
+                          onClick={() => {
+                            setSearchValue(item);
+                            setShowSearchPopup(true);
+                          }}
+                          style={{ cursor: "pointer" }}
+                        >
                           {item}
                         </div>
                       ))}
@@ -369,12 +460,15 @@ export default function Navbar() {
                         "T-Shirts",
                         "Jeans",
                         "Cargo Pants",
-                        "Shoes",
                       ].map((item, index) => (
                         <div
-                          className={`search-chip ${index === 0 ? "active-chip" : ""
-                            }`}
+                          className={`search-chip ${searchValue.toLowerCase() === (item === 'All' ? '' : item.toLowerCase()) ? "active-chip" : ""}`}
                           key={index}
+                          onClick={() => {
+                            setSearchValue(item === "All" ? "" : item);
+                            setShowSearchPopup(true);
+                          }}
+                          style={{ cursor: "pointer" }}
                         >
                           {item}
                         </div>
@@ -384,30 +478,60 @@ export default function Navbar() {
 
                   {/* PRODUCTS */}
 
-                  <div className="search-products">
+                  <div className="search-section" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '15px' }}>
+                    <h3 className="section-title" style={{ fontSize: '13px', fontWeight: '800', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+                      {searchValue.trim() === "" ? "Recommended Products" : `Search Results (${searchResults.length})`}
+                    </h3>
 
-                    {[1, 2, 3, 4].map((item) => (
-                      <div className="product-card" key={item}>
-                        <div className="product-image-wrapper">
-                          <img
-                            src="https://cdn.shopify.com/s/files/1/0420/7073/7058/files/1_7e454c60-a9aa-40e9-817d-d553b1424652.jpg?v=1775232197&quality=80"
-                            alt=""
-                            className="product-image"
-                          />
+                    <div className="search-products" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '15px', padding: '10px 0' }}>
+                      {searchLoading ? (
+                        <div style={{ padding: '20px', color: '#666', fontSize: '14px', gridColumn: '1 / -1' }}>Loading...</div>
+                      ) : (
+                        (searchValue.trim() === "" ? allProducts.slice(0, 4) : searchResults).map((product) => {
+                          const productImg = (product.images && product.images[0])
+                            ? (product.images[0].includes('/uploads/') ? `${API_URLS.BASE}${product.images[0].substring(product.images[0].indexOf('/uploads/'))}` : product.images[0])
+                            : '/product_shirt.png';
+                          
+                          return (
+                            <Link 
+                              href={`/product/${product.slug}`} 
+                              key={product._id} 
+                              className="product-card"
+                              onClick={() => setShowSearchPopup(false)}
+                              style={{ display: 'flex', gap: '12px', textDecoration: 'none', color: 'inherit', padding: '8px', borderRadius: '8px', border: '1px solid #f0f0f0', transition: 'all 0.2s', background: '#fff' }}
+                              onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--primary-color)'}
+                              onMouseLeave={(e) => e.currentTarget.style.borderColor = '#f0f0f0'}
+                            >
+                              <div className="product-image-wrapper" style={{ width: '60px', height: '60px', borderRadius: '6px', overflow: 'hidden', flexShrink: 0 }}>
+                                <img
+                                  src={productImg}
+                                  alt={product.name}
+                                  className="product-image"
+                                  onError={(e) => {
+                                    e.target.onerror = null;
+                                    e.target.src = '/product_shirt.png';
+                                  }}
+                                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                              </div>
+                              <div className="product-content" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                                <h4 style={{ fontSize: '13px', fontWeight: '700', margin: '0 0 4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '140px', color: '#000' }}>
+                                  {product.name}
+                                </h4>
+                                <p style={{ fontSize: '13px', fontWeight: '800', margin: 0, color: 'var(--primary-color)' }}>
+                                  ₹{product.price}
+                                </p>
+                              </div>
+                            </Link>
+                          );
+                        })
+                      )}
+                      {!searchLoading && searchResults.length === 0 && searchValue.trim() !== "" && (
+                        <div style={{ padding: '20px', color: '#888', fontSize: '14px', textAlign: 'center', gridColumn: '1 / -1' }}>
+                          No matches found. Press Enter to search anyway.
                         </div>
-
-                        <div className="product-content">
-                          <h4>
-                            Navy Cotton Linen Shirt
-                          </h4>
-
-                          <p>
-                            ₹1599
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div

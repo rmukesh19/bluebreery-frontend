@@ -62,5 +62,34 @@ export const resolveImageUrl = (url) => {
   return url;
 };
 
+const getCategoryFallbackImage = (catName) => {
+  const name = (catName || '').toLowerCase();
+  if (name.includes('shirt')) return '/product_shirt.png';
+  if (name.includes('trouser') || name.includes('pant') || name.includes('cargo') || name.includes('bottom') || name.includes('jeans') || name.includes('size')) return '/product_jeans.png';
+  if (name.includes('polo') || name.includes('t-shirt') || name.includes('tee')) return '/product_tshirt.png';
+  return '/mens_category.png'; // Global default
+};
+
+export const handleImageError = (e, type = 'product') => {
+  if (!e.target) return;
+  e.target.onerror = null; // Prevent infinite loop
+  const altText = e.target.alt || '';
+  
+  if (type === 'category') {
+    e.target.src = getCategoryFallbackImage(altText);
+  } else if (type === 'banner') {
+    e.target.src = '/images/banners/linen-portrait.png';
+  } else {
+    const lowerName = altText.toLowerCase();
+    if (lowerName.includes('shirt')) {
+      e.target.src = '/product_shirt.png';
+    } else if (lowerName.includes('pant') || lowerName.includes('jeans') || lowerName.includes('cargo') || lowerName.includes('trouser')) {
+      e.target.src = '/product_jeans.png';
+    } else {
+      e.target.src = '/product_tshirt.png';
+    }
+  }
+};
+
 export default API_BASE_URL;
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Plus, Trash2, Upload, X, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
-import { API_URLS } from '@/utils/api';
+import { API_URLS, resolveImageUrl, handleImageError } from '@/utils/api';
 import { useToast } from '@/context/ToastContext';
 import RichTextEditor from '@/components/RichTextEditor';
 
@@ -29,11 +29,12 @@ export default function AddProduct() {
     weight: '',
     priority: 'Normal',
     description: '',
-    sizeChartImage: ''
+    sizeChartImage: '',
+    images: []
   });
 
   const [variants, setVariants] = useState([]);
-  const [uploading, setUploading] = useState({ sizeChart: false, variant: null });
+  const [uploading, setUploading] = useState({ sizeChart: false, variant: null, mainProduct: false });
 
   useEffect(() => {
     fetchCategories();
@@ -90,6 +91,7 @@ export default function AddProduct() {
     formData.append('image', file);
 
     if (type === 'sizeChart') setUploading({ ...uploading, sizeChart: true });
+    else if (type === 'mainProduct') setUploading({ ...uploading, mainProduct: true });
     else setUploading({ ...uploading, variant: variantIndex });
 
     try {
@@ -109,6 +111,9 @@ export default function AddProduct() {
       if (type === 'sizeChart') {
         setProductData(prev => ({ ...prev, sizeChartImage: imageUrl }));
         showToast('Size chart image uploaded successfully!', 'success');
+      } else if (type === 'mainProduct') {
+        setProductData(prev => ({ ...prev, images: [...(prev.images || []), imageUrl] }));
+        showToast('Product image uploaded successfully!', 'success');
       } else if (variantIndex !== null) {
         const updatedVariants = [...variants];
         updatedVariants[variantIndex].images = [...(updatedVariants[variantIndex].images || []), imageUrl];
@@ -119,7 +124,7 @@ export default function AddProduct() {
       console.error('Upload failed:', error);
       showToast('Network error: Could not upload image.', 'error');
     } finally {
-      setUploading({ sizeChart: false, variant: null });
+      setUploading({ sizeChart: false, variant: null, mainProduct: false });
     }
   };
 
@@ -151,7 +156,7 @@ export default function AddProduct() {
         oldPrice: productData.mrp,
         brand: 'Beyoung', // Default or from data
         slug: productData.name.toLowerCase().replace(/ /g, '-'),
-        images: variants.length > 0 ? variants[0].images : [], // fallback
+        images: productData.images && productData.images.length > 0 ? productData.images : (variants.length > 0 ? variants[0].images : []),
         variants: variants
       };
 
@@ -352,6 +357,85 @@ export default function AddProduct() {
             </div>
           </div>
 
+          {/* Product Images Gallery */}
+          <div className="form-group" style={{ marginBottom: '25px' }}>
+            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#4b5563' }}>
+              Product Images <span style={{ fontSize: '12px', color: '#888', fontWeight: 'normal' }}>(Upload dynamic images for standard product display)</span>
+            </label>
+            <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', background: '#f8fafc', padding: '20px', borderRadius: '8px', border: '1.5px dashed #cbd5e1' }}>
+              {(productData.images || []).map((img, idx) => (
+                <div key={idx} style={{ position: 'relative', width: '90px', height: '90px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', background: '#fff' }}>
+                  <img 
+                    src={resolveImageUrl(img)} 
+                    alt={productData.name} 
+                    onError={(e) => handleImageError(e, 'product')}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setProductData(prev => ({
+                        ...prev,
+                        images: prev.images.filter((_, i) => i !== idx)
+                      }));
+                    }}
+                    style={{ 
+                      position: 'absolute', 
+                      top: '4px', 
+                      right: '4px', 
+                      background: 'rgba(255, 255, 255, 0.9)', 
+                      borderRadius: '50%', 
+                      border: 'none', 
+                      padding: '4px', 
+                      cursor: 'pointer', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center', 
+                      boxShadow: '0 1px 4px rgba(0,0,0,0.15)' 
+                    }}
+                  >
+                    <X size={12} color="#ef4444" strokeWidth={3} />
+                  </button>
+                </div>
+              ))}
+              
+              <div 
+                onClick={() => document.getElementById('main-product-image-upload').click()}
+                style={{
+                  width: '90px',
+                  height: '90px',
+                  border: '2px dashed #cbd5e1',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                  background: '#fff',
+                  transition: 'all 0.2s',
+                  gap: '4px',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.02)'
+                }}
+              >
+                {uploading.mainProduct ? (
+                  <span style={{ fontSize: '11px', color: '#1B769A', fontWeight: 'bold' }}>Uploading...</span>
+                ) : (
+                  <>
+                    <Plus size={24} />
+                    <span style={{ fontSize: '11px', fontWeight: '700' }}>Add Photo</span>
+                  </>
+                )}
+                <input 
+                  type="file" 
+                  id="main-product-image-upload" 
+                  onChange={(e) => handleFileUpload(e, 'mainProduct')}
+                  hidden 
+                />
+              </div>
+            </div>
+          </div>
+
           {/* Row 6: Size Chart */}
           <div className="form-group">
             <label>Size Chart Image</label>
@@ -368,7 +452,12 @@ export default function AddProduct() {
               </div>
               {productData.sizeChartImage && (
                 <div style={{ marginTop: '10px' }}>
-                  <img src={productData.sizeChartImage} alt="Size Chart" style={{ height: '80px', borderRadius: '4px' }} />
+                  <img 
+                    src={resolveImageUrl(productData.sizeChartImage)} 
+                    alt="Size Chart" 
+                    onError={(e) => handleImageError(e, 'category')}
+                    style={{ height: '80px', borderRadius: '4px' }} 
+                  />
                 </div>
               )}
             </div>
@@ -469,7 +558,12 @@ export default function AddProduct() {
                   <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', background: '#f8fafc', padding: '15px', borderRadius: '10px', border: '1.5px solid #f1f5f9' }}>
                     {Array.isArray(variant.images) && variant.images.map((img, iIndex) => (
                       <div key={iIndex} style={{ position: 'relative', width: '80px', height: '80px', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-                        <img src={img} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img 
+                          src={resolveImageUrl(img)} 
+                          alt="" 
+                          onError={(e) => handleImageError(e, 'product')}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        />
                         <button 
                           onClick={() => {
                             const updated = [...variants];

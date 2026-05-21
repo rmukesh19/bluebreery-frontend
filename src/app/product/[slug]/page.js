@@ -6,7 +6,7 @@ import { getProductBySlug } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { useRouter, useParams } from 'next/navigation';
 import { Maximize, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { API_URLS, API_BASE_URL, resolveImageUrl } from '@/utils/api';
+import { API_URLS, API_BASE_URL, resolveImageUrl, handleImageError } from '@/utils/api';
 
 
 export default function ProductPage() {
@@ -14,9 +14,10 @@ export default function ProductPage() {
   const slug = params?.slug;
 
   const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedSize, setSelectedSize] = useState('');
   const [activeImage, setActiveImage] = useState(0);
-  const [selectedSize, setSelectedSize] = useState('L');
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [expandedSection, setExpandedSection] = useState('description');
   const [pincode, setPincode] = useState('');
   const [deliveryStatus, setDeliveryStatus] = useState(null);
@@ -38,10 +39,19 @@ export default function ProductPage() {
           const data = await res.json();
           setProduct(data);
           
-          const availableSizes = Array.isArray(data.sizes) && data.sizes.length > 0 
-            ? data.sizes 
-            : ['S', 'M', 'L', 'XL', 'XXL'];
-          setSelectedSize(availableSizes[0]);
+          if (data.variants && data.variants.length > 0) {
+            setSelectedVariantIndex(0);
+            if (data.variants[0].sizes && data.variants[0].sizes.length > 0) {
+              setSelectedSize(data.variants[0].sizes[0].size);
+            } else {
+              setSelectedSize('S');
+            }
+          } else {
+            const availableSizes = Array.isArray(data.sizes) && data.sizes.length > 0 
+              ? data.sizes 
+              : ['S', 'M', 'L', 'XL', 'XXL'];
+            setSelectedSize(availableSizes[0]);
+          }
 
           // Fetch similar products
           try {
@@ -57,7 +67,14 @@ export default function ProductPage() {
           const staticProd = getProductBySlug(slug);
           if (staticProd) {
             setProduct(staticProd);
-            setSelectedSize(staticProd.sizes[0]);
+            if (staticProd.variants && staticProd.variants.length > 0) {
+              setSelectedVariantIndex(0);
+              if (staticProd.variants[0].sizes && staticProd.variants[0].sizes.length > 0) {
+                setSelectedSize(staticProd.variants[0].sizes[0].size);
+              }
+            } else {
+              setSelectedSize(staticProd.sizes ? staticProd.sizes[0] : 'S');
+            }
           }
         }
       } catch (error) {
@@ -66,7 +83,14 @@ export default function ProductPage() {
           const staticProd = getProductBySlug(slug);
           if (staticProd) {
             setProduct(staticProd);
-            setSelectedSize(staticProd.sizes[0]);
+            if (staticProd.variants && staticProd.variants.length > 0) {
+              setSelectedVariantIndex(0);
+              if (staticProd.variants[0].sizes && staticProd.variants[0].sizes.length > 0) {
+                setSelectedSize(staticProd.variants[0].sizes[0].size);
+              }
+            } else {
+              setSelectedSize(staticProd.sizes ? staticProd.sizes[0] : 'S');
+            }
           }
         } catch (e) {
           console.error("Error loading static fallback product details:", e);
@@ -115,6 +139,21 @@ export default function ProductPage() {
     });
   };
 
+  const handleTouchMove = (e) => {
+    if (e.touches && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+      const x = ((touch.clientX - left) / width) * 100;
+      const y = ((touch.clientY - top) / height) * 100;
+      if (x >= 0 && x <= 100 && y >= 0 && y <= 100) {
+        setZoomStyle({
+          transformOrigin: `${x}% ${y}%`,
+          transform: 'scale(2.5)'
+        });
+      }
+    }
+  };
+
   const handleZoomLeave = () => {
     setZoomStyle({
       transformOrigin: 'center',
@@ -145,13 +184,23 @@ export default function ProductPage() {
     "Status": product.inStock ? "In Stock" : "Out of Stock"
   };
 
-  const displayImages = Array.isArray(product.images) && product.images.length > 0
-    ? product.images.map(img => resolveImageUrl(img))
-    : [product.category?.toLowerCase().includes('pant') || product.category?.toLowerCase().includes('jeans') || product.category?.toLowerCase().includes('cargo') ? '/product_jeans.png' : '/product_shirt.png'];
+  const hasVariants = Array.isArray(product.variants) && product.variants.length > 0;
+  
+  const currentVariant = hasVariants ? product.variants[selectedVariantIndex] : null;
 
-  const displaySizes = Array.isArray(product.sizes) && product.sizes.length > 0 
-    ? product.sizes 
-    : ['S', 'M', 'L', 'XL', 'XXL'];
+  const displayImages = currentVariant && Array.isArray(currentVariant.images) && currentVariant.images.length > 0
+    ? currentVariant.images.map(img => resolveImageUrl(img))
+    : (Array.isArray(product.images) && product.images.length > 0
+      ? product.images.map(img => resolveImageUrl(img))
+      : [product.category?.toLowerCase().includes('pant') || product.category?.toLowerCase().includes('jeans') || product.category?.toLowerCase().includes('cargo') ? '/product_jeans.png' : '/product_shirt.png']);
+
+  const displaySizes = currentVariant && Array.isArray(currentVariant.sizes) && currentVariant.sizes.length > 0
+    ? currentVariant.sizes.map(s => s.size)
+    : (Array.isArray(product.sizes) && product.sizes.length > 0 
+      ? product.sizes 
+      : ['S', 'M', 'L', 'XL', 'XXL']);
+
+  const safeActiveImage = activeImage < displayImages.length ? activeImage : 0;
 
   const discountText = product.discount || (product.oldPrice ? `${Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100)}% OFF` : '');
 
@@ -167,10 +216,10 @@ export default function ProductPage() {
               {displayImages.slice(0, 5).map((img, index) => (
                 <li 
                   key={index} 
-                  className={activeImage === index ? 'active' : ''}
+                  className={safeActiveImage === index ? 'active' : ''}
                   onClick={() => setActiveImage(index)}
                 >
-                  <img src={img} alt={`Product ${index}`} />
+                  <img src={img} alt={`Product ${index}`} onError={(e) => handleImageError(e, 'product')} />
                 </li>
               ))}
             </ul>
@@ -178,11 +227,15 @@ export default function ProductPage() {
               className="full-img-slide"
               onMouseMove={handleZoomMove}
               onMouseLeave={handleZoomLeave}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleZoomLeave}
+              style={{ touchAction: 'none', position: 'relative' }}
             >
               <img 
-                src={displayImages[activeImage]} 
+                src={displayImages[safeActiveImage]} 
                 alt="Main Product" 
                 className="zoomable-product-image"
+                onError={(e) => handleImageError(e, 'product')}
                 style={zoomStyle}
               />
               
@@ -218,6 +271,51 @@ export default function ProductPage() {
               {discountText && <span className="discount-price">{discountText}</span>}
             </div>
             <p className="discounted-text">Inclusive of all taxes</p>
+
+            {/* Color Variant Picker */}
+            {hasVariants && (
+              <div className="product-details-one-box" style={{ marginBottom: '20px' }}>
+                <div className="select-product-size" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+                  <div className="title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span>SELECT COLOR</span>
+                    <span style={{ fontSize: '13px', fontWeight: '800', color: '#1B769A', textTransform: 'uppercase' }}>
+                      {product.variants[selectedVariantIndex].color}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '12px', flexWrap: 'wrap' }}>
+                    {product.variants.map((variant, idx) => {
+                      const isSelected = selectedVariantIndex === idx;
+                      const colorHex = variant.color ? variant.color.toLowerCase() : '#ccc';
+                      
+                      return (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setSelectedVariantIndex(idx);
+                            setActiveImage(0);
+                            if (variant.sizes && variant.sizes.length > 0) {
+                              setSelectedSize(variant.sizes[0].size);
+                            }
+                          }}
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            backgroundColor: colorHex,
+                            border: isSelected ? '3px solid #1B769A' : '1px solid #ddd',
+                            outline: isSelected ? '2px solid #fff' : 'none',
+                            cursor: 'pointer',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
+                            transition: 'all 0.2s ease'
+                          }}
+                          title={variant.color}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Size Picker */}
             <div className="product-details-one-box">
@@ -368,7 +466,7 @@ export default function ProductPage() {
             ]).map((item, i) => (
               <Link key={i} href={`/product/${item.slug || 'grey-acid-wash-polo-t-shirt'}`} className="trending-card" style={{ textDecoration: 'none', color: 'inherit' }}>
                 <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4', overflow: 'hidden', borderRadius: '10px', backgroundColor: '#f9f9f9' }}>
-                  <img src={resolveImageUrl(item.images?.[0]) || resolveImageUrl(item.img)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img src={resolveImageUrl(item.images?.[0]) || resolveImageUrl(item.img)} alt={item.name} onError={(e) => handleImageError(e, 'product')} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 </div>
                 <h4 style={{ fontSize: '15px', margin: '15px 0 5px', fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</h4>
                 <p style={{ fontWeight: '800', color: '#212121', fontSize: '16px' }}>₹{item.price}</p>
@@ -399,7 +497,7 @@ export default function ProductPage() {
         }}>
           {/* Top Bar */}
           <div style={{ display: 'flex', justifyContent: 'space-between', padding: '20px 30px', color: '#fff', alignItems: 'center' }}>
-            <div style={{ fontSize: '16px', fontWeight: '600' }}>{activeImage + 1} / {displayImages.length}</div>
+            <div style={{ fontSize: '16px', fontWeight: '600' }}>{safeActiveImage + 1} / {displayImages.length}</div>
             <div style={{ display: 'flex', gap: '20px' }}>
               <Maximize size={24} style={{ cursor: 'pointer' }} onClick={() => setLightboxZoom(prev => prev === 1 ? 2 : 1)} />
               <X size={28} style={{ cursor: 'pointer' }} onClick={() => { setShowLightbox(false); setLightboxZoom(1); }} />
@@ -416,7 +514,7 @@ export default function ProductPage() {
             </button>
             
             <img 
-              src={displayImages[activeImage]} 
+              src={displayImages[safeActiveImage]} 
               alt="Fullscreen Product" 
               style={{ 
                 maxHeight: '85vh', 

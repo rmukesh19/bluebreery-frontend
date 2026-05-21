@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import HeroBanner from '@/components/HeroBanner';
 import { X, Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import './home.css';
-import { API_URLS, resolveImageUrl } from '@/utils/api';
+import { API_URLS, resolveImageUrl, handleImageError } from '@/utils/api';
 
 const getCategoryFallbackImage = (catName) => {
   const name = (catName || '').toLowerCase();
@@ -290,6 +290,7 @@ export default function Home() {
                     <img 
                       src={resolveImageUrl(cat.image) || getCategoryFallbackImage(cat.name)} 
                       alt={cat.name} 
+                      onError={(e) => handleImageError(e, 'category')}
                       style={{ 
                         maxWidth: '90%', 
                         maxHeight: '90%', 
@@ -316,7 +317,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : displayShirts).map((item, idx) => (
             <Link key={loading ? idx : item._id} href={`/product/${item.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(item.images?.[0]) || getProductFallbackImage(item.name)} alt={item.name} />
+                <img src={resolveImageUrl(item.images?.[0]) || getProductFallbackImage(item.name)} alt={item.name} onError={(e) => handleImageError(e, 'product')} />
               </div>
               <div className="premium-card-info">
                 <h3>{item.name}</h3>
@@ -393,7 +394,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : (Array.isArray(products) ? products.slice(0, 4) : [])).map((item, idx) => (
             <Link key={loading ? idx : item._id} href={`/product/${item.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(item.images?.[0]) || getProductFallbackImage(item.name)} alt={item.name} />
+                <img src={resolveImageUrl(item.images?.[0]) || getProductFallbackImage(item.name)} alt={item.name} onError={(e) => handleImageError(e, 'product')} />
               </div>
               <div className="premium-card-info">
                 <h3>{item.name}</h3>
@@ -486,7 +487,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : (Array.isArray(products) ? products.slice(4, 8) : [])).map((product, idx) => (
             <Link key={loading ? idx : product._id} href={`/product/${product.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} alt={product.name} />
+                <img src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} alt={product.name} onError={(e) => handleImageError(e, 'product')} />
               </div>
               <div className="premium-card-info">
                 <h3>{product.name}</h3>
@@ -510,7 +511,7 @@ export default function Home() {
           {(loading ? [1,2,3,4] : displayBottoms).map((product, idx) => (
             <Link key={loading ? idx : product._id} href={`/product/${product.slug}`} className="premium-card">
               <div className="premium-card-img-wrapper">
-                <img src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} alt={product.name} />
+                <img src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} alt={product.name} onError={(e) => handleImageError(e, 'product')} />
               </div>
               <div className="premium-card-info">
                 <h3>{product.name}</h3>

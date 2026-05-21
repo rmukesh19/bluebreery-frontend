@@ -4,7 +4,7 @@ import { Autoplay, Pagination, Navigation, Parallax } from 'swiper/modules';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
-import { API_URLS, resolveImageUrl } from '@/utils/api';
+import { API_URLS, resolveImageUrl, handleImageError } from '@/utils/api';
 
 
 // Import Swiper styles
@@ -127,6 +127,7 @@ export default function HeroBanner() {
                     <img
                       src={slide.img}
                       alt={slide.title}
+                      onError={(e) => handleImageError(e, 'banner')}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'top' }}
                       className="hero-image"
                     />
@@ -138,6 +139,9 @@ export default function HeroBanner() {
                       style={{ objectFit: 'cover', objectPosition: 'top' }}
                       className="hero-image"
                       priority={index < 3}
+                      onError={(e) => {
+                        if (e.target) handleImageError(e, 'banner');
+                      }}
                     />
                   )}
                   <div className="slide-overlay">

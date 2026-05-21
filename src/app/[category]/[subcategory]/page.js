@@ -35,18 +35,11 @@ export default function SubcategoryPage() {
       try {
         const response = await fetch(`${API_BASE_URL}/products/subcategory/${subcategory}`);
         const data = await response.json();
-        
-        // Fallback: if no products for this specific subcategory, fetch all
-        if (data.length === 0) {
-          const allResponse = await fetch(API_URLS.PRODUCTS);
-          const allData = await allResponse.json();
-          setProducts(allData);
-        } else {
-          setProducts(data);
-        }
+        setProducts(Array.isArray(data) ? data : []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching subcategory products:', error);
+        setProducts([]);
         setLoading(false);
       }
     };

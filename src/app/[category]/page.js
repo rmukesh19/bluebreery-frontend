@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Filter, X } from 'lucide-react';
 import FilterSidebar from '@/components/FilterSidebar';
-import { API_URLS, API_BASE_URL, resolveImageUrl } from '@/utils/api';
+import { API_URLS, API_BASE_URL, resolveImageUrl, handleImageError } from '@/utils/api';
 
 const getProductFallbackImage = (prodName) => {
   const name = (prodName || '').toLowerCase();
@@ -64,23 +64,13 @@ export default function CategoryPage() {
   useEffect(() => {
     const fetchCategoryProducts = async () => {
       try {
-        // Map slug back to category name if needed, or just search by slug
-        // For now searching by category name (first letter capitalized)
-        const catName = category.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-        const response = await fetch(`${API_BASE_URL}/products/category/${catName}`);
+        const response = await fetch(`${API_BASE_URL}/products/category/${category}`);
         const data = await response.json();
-        
-        // Fallback: if no products for this specific category, fetch all
-        if (data.length === 0) {
-          const allResponse = await fetch(API_URLS.PRODUCTS);
-          const allData = await allResponse.json();
-          setProducts(allData);
-        } else {
-          setProducts(data);
-        }
+        setProducts(Array.isArray(data) ? data : []);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching products:', error);
+        setProducts([]);
         setLoading(false);
       }
     };
@@ -141,6 +131,7 @@ export default function CategoryPage() {
                     <img 
                       src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} 
                       alt={product.name}
+                      onError={(e) => handleImageError(e, 'product')}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease' }}
                     />
                   </div>
