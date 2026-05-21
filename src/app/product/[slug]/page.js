@@ -27,6 +27,7 @@ export default function ProductPage() {
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxScale, setLightboxScale] = useState(1);
   const [lightboxTouchStartDist, setLightboxTouchStartDist] = useState(null);
+  const [lastTap, setLastTap] = useState(0);
   const [similarProducts, setSimilarProducts] = useState([]);
 
   const router = useRouter();
@@ -244,6 +245,16 @@ export default function ProductPage() {
       setLightboxScale(1);
     } else {
       setLightboxScale(2.5);
+    }
+  };
+
+  const handleImageClick = () => {
+    const now = Date.now();
+    const DOUBLE_PRESS_DELAY = 300;
+    if (now - lastTap < DOUBLE_PRESS_DELAY) {
+      toggleLightboxZoom();
+    } else {
+      setLastTap(now);
     }
   };
 
@@ -605,8 +616,8 @@ export default function ProductPage() {
               flex: 1, 
               position: 'relative', 
               display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
+              alignItems: lightboxScale > 1 ? 'flex-start' : 'center',
+              justifyContent: lightboxScale > 1 ? 'flex-start' : 'center',
               overflow: 'auto',
               WebkitOverflowScrolling: 'touch'
             }}
@@ -630,11 +641,11 @@ export default function ProductPage() {
                 width: lightboxScale > 1 ? `${80 * lightboxScale}vw` : 'auto',
                 height: lightboxScale > 1 ? `${85 * lightboxScale}vh` : 'auto',
                 objectFit: 'contain',
-                transition: 'width 0.2s ease, height 0.2s ease, max-width 0.2s ease, max-height 0.2s ease',
+                transition: lightboxTouchStartDist ? 'none' : 'width 0.2s ease, height 0.2s ease, max-width 0.2s ease, max-height 0.2s ease',
                 cursor: lightboxScale === 1 ? 'zoom-in' : 'zoom-out',
-                margin: 'auto'
+                margin: lightboxScale > 1 ? '0 auto' : 'auto'
               }} 
-              onClick={toggleLightboxZoom}
+              onClick={handleImageClick}
             />
 
             <button 
