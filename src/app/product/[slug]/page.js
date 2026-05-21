@@ -26,7 +26,10 @@ export default function ProductPage() {
   const [touchStartDist, setTouchStartDist] = useState(null);
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxScale, setLightboxScale] = useState(1);
+  const [lightboxOffset, setLightboxOffset] = useState({ x: 0, y: 0 });
   const [lightboxTouchStartDist, setLightboxTouchStartDist] = useState(null);
+  const [lightboxTouchStartOffset, setLightboxTouchStartOffset] = useState({ x: 0, y: 0 });
+  const [lightboxIsDragging, setLightboxIsDragging] = useState(false);
   const [lastTap, setLastTap] = useState(0);
   const [similarProducts, setSimilarProducts] = useState([]);
 
@@ -35,6 +38,7 @@ export default function ProductPage() {
 
   useEffect(() => {
     setLightboxScale(1);
+    setLightboxOffset({ x: 0, y: 0 });
   }, [activeImage, showLightbox]);
 
   useEffect(() => {
@@ -215,7 +219,14 @@ export default function ProductPage() {
   };
 
   const handleLightboxTouchStart = (e) => {
-    if (e.touches && e.touches.length === 2) {
+    if (e.touches && e.touches.length === 1) {
+      const touch = e.touches[0];
+      setLightboxIsDragging(true);
+      setLightboxTouchStartOffset({
+        x: touch.clientX - lightboxOffset.x,
+        y: touch.clientY - lightboxOffset.y
+      });
+    } else if (e.touches && e.touches.length === 2) {
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -225,7 +236,14 @@ export default function ProductPage() {
   };
 
   const handleLightboxTouchMove = (e) => {
-    if (e.touches && e.touches.length === 2 && lightboxTouchStartDist) {
+    if (e.touches && e.touches.length === 1 && lightboxIsDragging) {
+      const touch = e.touches[0];
+      const deltaX = touch.clientX - lightboxTouchStartOffset.x;
+      const deltaY = touch.clientY - lightboxTouchStartOffset.y;
+      if (lightboxScale > 1) {
+        setLightboxOffset({ x: deltaX, y: deltaY });
+      }
+    } else if (e.touches && e.touches.length === 2 && lightboxTouchStartDist) {
       const dist = Math.hypot(
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
@@ -237,14 +255,20 @@ export default function ProductPage() {
   };
 
   const handleLightboxTouchEnd = () => {
+    setLightboxIsDragging(false);
     setLightboxTouchStartDist(null);
+    if (lightboxScale <= 1) {
+      setLightboxOffset({ x: 0, y: 0 });
+    }
   };
 
   const toggleLightboxZoom = () => {
     if (lightboxScale > 1) {
       setLightboxScale(1);
+      setLightboxOffset({ x: 0, y: 0 });
     } else {
       setLightboxScale(2.5);
+      setLightboxOffset({ x: 0, y: 0 });
     }
   };
 
@@ -616,10 +640,10 @@ export default function ProductPage() {
               flex: 1, 
               position: 'relative', 
               display: 'flex', 
-              alignItems: lightboxScale > 1 ? 'flex-start' : 'center',
-              justifyContent: lightboxScale > 1 ? 'flex-start' : 'center',
-              overflow: 'auto',
-              WebkitOverflowScrolling: 'touch'
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              overflow: 'hidden',
+              touchAction: 'none'
             }}
             onTouchStart={handleLightboxTouchStart}
             onTouchMove={handleLightboxTouchMove}
@@ -636,14 +660,13 @@ export default function ProductPage() {
               src={displayImages[safeActiveImage]} 
               alt="Fullscreen Product" 
               style={{ 
-                maxHeight: `${85 * lightboxScale}vh`, 
-                maxWidth: `${80 * lightboxScale}vw`,
-                width: lightboxScale > 1 ? `${80 * lightboxScale}vw` : 'auto',
-                height: lightboxScale > 1 ? `${85 * lightboxScale}vh` : 'auto',
+                maxHeight: '85vh', 
+                maxWidth: '80vw', 
                 objectFit: 'contain',
-                transition: lightboxTouchStartDist ? 'none' : 'width 0.2s ease, height 0.2s ease, max-width 0.2s ease, max-height 0.2s ease',
-                cursor: lightboxScale === 1 ? 'zoom-in' : 'zoom-out',
-                margin: lightboxScale > 1 ? '0 auto' : 'auto'
+                transform: `translate(${lightboxOffset.x}px, ${lightboxOffset.y}px) scale(${lightboxScale})`,
+                transition: lightboxIsDragging ? 'none' : 'transform 0.3s ease',
+                cursor: lightboxScale === 1 ? 'zoom-in' : 'grab',
+                touchAction: 'none'
               }} 
               onClick={handleImageClick}
             />
