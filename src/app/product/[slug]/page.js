@@ -5,7 +5,7 @@ import '../product.css';
 import { getProductBySlug } from '@/data/products';
 import { useCart } from '@/context/CartContext';
 import { useRouter, useParams } from 'next/navigation';
-import { Maximize, X, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Maximize, X, ChevronLeft, ChevronRight, ZoomIn } from 'lucide-react';
 import { API_URLS, API_BASE_URL, resolveImageUrl, handleImageError } from '@/utils/api';
 
 
@@ -23,6 +23,7 @@ export default function ProductPage() {
   const [deliveryStatus, setDeliveryStatus] = useState(null);
   const [showToast, setShowToast] = useState(false);
   const [zoomStyle, setZoomStyle] = useState({});
+  const [touchStartDist, setTouchStartDist] = useState(null);
   const [showLightbox, setShowLightbox] = useState(false);
   const [lightboxZoom, setLightboxZoom] = useState(1);
   const [similarProducts, setSimilarProducts] = useState([]);
@@ -139,6 +140,25 @@ export default function ProductPage() {
     });
   };
 
+  const handleTouchStart = (e) => {
+    if (e.touches && e.touches.length === 1) {
+      const touch = e.touches[0];
+      const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+      const x = ((touch.clientX - left) / width) * 100;
+      const y = ((touch.clientY - top) / height) * 100;
+      setZoomStyle({
+        transformOrigin: `${x}% ${y}%`,
+        transform: 'scale(2.5)'
+      });
+    } else if (e.touches && e.touches.length === 2) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      setTouchStartDist(dist);
+    }
+  };
+
   const handleTouchMove = (e) => {
     if (e.touches && e.touches.length === 1) {
       const touch = e.touches[0];
@@ -151,7 +171,34 @@ export default function ProductPage() {
           transform: 'scale(2.5)'
         });
       }
+    } else if (e.touches && e.touches.length === 2 && touchStartDist) {
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const factor = dist / touchStartDist;
+      const newScale = Math.min(Math.max(1, factor * 2.2), 4);
+      
+      const { left, top, width, height } = e.currentTarget.getBoundingClientRect();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      
+      const x = ((midX - left) / width) * 100;
+      const y = ((midY - top) / height) * 100;
+      
+      setZoomStyle({
+        transformOrigin: `${x}% ${y}%`,
+        transform: `scale(${newScale})`
+      });
     }
+  };
+
+  const handleTouchEnd = () => {
+    setTouchStartDist(null);
+    setZoomStyle({
+      transformOrigin: 'center',
+      transform: 'scale(1)'
+    });
   };
 
   const handleZoomLeave = () => {
@@ -227,8 +274,9 @@ export default function ProductPage() {
               className="full-img-slide"
               onMouseMove={handleZoomMove}
               onMouseLeave={handleZoomLeave}
+              onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
-              onTouchEnd={handleZoomLeave}
+              onTouchEnd={handleTouchEnd}
               style={{ touchAction: 'none', position: 'relative' }}
             >
               <img 
@@ -246,6 +294,14 @@ export default function ProductPage() {
                 style={{ position: 'absolute', top: '70px', right: '20px', background: '#fff', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 11 }}
               >
                 <Maximize size={20} color="#212121" />
+              </div>
+
+              {/* Zoom Icon (Lens) */}
+              <div 
+                className="zoom-lens-icon"
+                style={{ position: 'absolute', top: '120px', right: '20px', background: '#fff', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.15)', zIndex: 11, pointerEvents: 'none' }}
+              >
+                <ZoomIn size={20} color="#212121" />
               </div>
 
               <div className="heart-icon">

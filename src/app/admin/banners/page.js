@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Monitor, Smartphone, ExternalLink, X, Upload } from 'lucide-react';
-import { API_URLS } from '@/utils/api';
+import { API_URLS, compressImage } from '@/utils/api';
 import { useToast } from '@/context/ToastContext';
 
 export default function Banners() {
@@ -47,18 +47,21 @@ export default function Banners() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const uploadFormData = new FormData();
-    uploadFormData.append('image', file);
     setUploading(true);
 
     try {
+      const compressedFile = await compressImage(file);
+      const uploadFormData = new FormData();
+      uploadFormData.append('image', compressedFile);
+
       const response = await fetch(API_URLS.UPLOAD, {
         method: 'POST',
         body: uploadFormData,
       });
       const data = await response.json();
       if (response.ok) {
-        setFormData({ ...formData, image: `${API_URLS.BASE}${data.image}` });
+        const imageUrl = data.image.startsWith('data:') ? data.image : `${API_URLS.BASE}${data.image}`;
+        setFormData({ ...formData, image: imageUrl });
         showToast('Image uploaded successfully!', 'success');
       } else {
         showToast(data.message || 'Image upload failed', 'error');

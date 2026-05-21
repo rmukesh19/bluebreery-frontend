@@ -4,7 +4,7 @@ import React, { useState, useEffect, use } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Save, Plus, Trash2, Upload, X, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
-import { API_URLS, resolveImageUrl, handleImageError } from '@/utils/api';
+import { API_URLS, resolveImageUrl, handleImageError, compressImage } from '@/utils/api';
 import { useToast } from '@/context/ToastContext';
 import RichTextEditor from '@/components/RichTextEditor';
 
@@ -128,14 +128,15 @@ export default function EditProductPage() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('image', file);
-
     if (type === 'sizeChart') setUploading({ ...uploading, sizeChart: true });
     else if (type === 'mainProduct') setUploading({ ...uploading, mainProduct: true });
     else setUploading({ ...uploading, variant: variantIndex });
 
     try {
+      const compressedFile = await compressImage(file);
+      const formData = new FormData();
+      formData.append('image', compressedFile);
+
       const response = await fetch(API_URLS.UPLOAD, {
         method: 'POST',
         body: formData,
@@ -147,7 +148,7 @@ export default function EditProductPage() {
         return;
       }
 
-      const imageUrl = `${API_URLS.BASE}${data.image}`;
+      const imageUrl = data.image.startsWith('data:') ? data.image : `${API_URLS.BASE}${data.image}`;
 
       if (type === 'sizeChart') {
         setProductData(prev => ({ ...prev, sizeChartImage: imageUrl }));

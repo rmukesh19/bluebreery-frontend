@@ -33,6 +33,11 @@ export const API_URLS = {
 
 export const resolveImageUrl = (url) => {
   if (!url) return '';
+
+  // Return base64 data URIs immediately
+  if (url.startsWith('data:')) {
+    return url;
+  }
   
   // Gracefully correct file extension mismatches for local banner assets (.jpeg/.jpg -> .png)
   if (url.includes('/images/banners/')) {
@@ -89,6 +94,79 @@ export const handleImageError = (e, type = 'product') => {
       e.target.src = '/product_tshirt.png';
     }
   }
+};
+
+export const compressImage = (file, maxWidth = 1000, maxHeight = 1000, quality = 0.8) => {
+  return new Promise((resolve) => {
+    // If it's not a browser environment or not an image file, return the original file
+    if (typeof window === 'undefined' || !file || !file.type || !file.type.startsWith('image/')) {
+      return resolve(file);
+    }
+
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        let width = img.width;
+        let height = img.height;
+
+        // Calculate new dimensions while maintaining aspect ratio
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          return resolve(file);
+        }
+
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Convert canvas back to a Blob / File
+        let format = file.type;
+        if (format === 'image/png' || format === 'image/webp') {
+          // Keep PNG/WebP for transparency if desired, or default to quality-based blob conversion
+        } else {
+          format = 'image/jpeg';
+        }
+
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              return resolve(file);
+            }
+            const compressedFile = new File([blob], file.name, {
+              type: format,
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          },
+          format,
+          quality
+        );
+      };
+      img.onerror = () => {
+        resolve(file);
+      };
+    };
+    reader.onerror = () => {
+      resolve(file);
+    };
+  });
 };
 
 export default API_BASE_URL;

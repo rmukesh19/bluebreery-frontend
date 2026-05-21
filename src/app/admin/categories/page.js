@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { Plus, Search, Edit2, Trash2, X } from 'lucide-react';
-import { API_URLS } from '@/utils/api';
+import { API_URLS, compressImage } from '@/utils/api';
 import { useToast } from '@/context/ToastContext';
 
 export default function Categories() {
@@ -109,18 +109,21 @@ export default function Categories() {
     const file = e.target.files[0];
     if (!file) return;
 
-    const formData = new FormData();
-    formData.append('image', file);
     setUploading(true);
 
     try {
+      const compressedFile = await compressImage(file);
+      const formData = new FormData();
+      formData.append('image', compressedFile);
+
       const response = await fetch(API_URLS.UPLOAD, {
         method: 'POST',
         body: formData,
       });
       const data = await response.json();
       if (response.ok) {
-        setCategoryImage(`${API_URLS.BASE}${data.image}`);
+        const imageUrl = data.image.startsWith('data:') ? data.image : `${API_URLS.BASE}${data.image}`;
+        setCategoryImage(imageUrl);
         showToast('Image uploaded successfully!', 'success');
       } else {
         showToast(data.message || 'Image upload failed', 'error');
