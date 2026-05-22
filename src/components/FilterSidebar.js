@@ -59,14 +59,14 @@ export default function FilterSidebar() {
       <div className="filter-sections">
         {filterCategories.map((category) => (
           <div key={category.id} className="filter-group">
-            <div 
-              className="filter-group-header" 
+            <div
+              className="filter-group-header"
               onClick={() => toggleSection(category.id)}
             >
               <span>{category.name}</span>
               {expanded[category.id] ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
             </div>
-            
+
             {expanded[category.id] && (
               <div className="filter-options">
                 {category.options.map((option, idx) => (

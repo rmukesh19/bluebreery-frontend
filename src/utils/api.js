@@ -39,6 +39,11 @@ export const resolveImageUrl = (url) => {
     return url;
   }
   
+  // If it is a production Render URL, it is public and fully valid. Keep it intact!
+  if (url.startsWith('https://bluebreery-backend-1.onrender.com')) {
+    return url;
+  }
+  
   // Gracefully correct file extension mismatches for local banner assets (.jpeg/.jpg -> .png)
   if (url.includes('/images/banners/')) {
     if (url.endsWith('.jpeg')) {

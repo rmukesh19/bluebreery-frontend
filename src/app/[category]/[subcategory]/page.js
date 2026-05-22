@@ -53,13 +53,13 @@ export default function SubcategoryPage() {
   return (
     <div className="category-page-main">
       <div className="category-container" style={{ maxWidth: '1440px', margin: '0 auto', padding: '20px 20px 60px' }}>
-        
+
         {/* Breadcrumbs */}
         <div style={{ fontSize: '12px', color: '#888', marginBottom: '30px', textTransform: 'capitalize', letterSpacing: '0.5px' }}>
-          <Link href="/" style={{ color: '#888' }}>Home</Link> 
-          <span style={{ margin: '0 8px', opacity: 0.5 }}>/</span> 
+          <Link href="/" style={{ color: '#888' }}>Home</Link>
+          <span style={{ margin: '0 8px', opacity: 0.5 }}>/</span>
           <Link href={`/${category}`} style={{ color: '#888' }}>{category?.replace(/-/g, ' ')}</Link>
-          <span style={{ margin: '0 8px', opacity: 0.5 }}>/</span> 
+          <span style={{ margin: '0 8px', opacity: 0.5 }}>/</span>
           <span style={{ color: '#000', fontWeight: '600' }}>{subcategory?.replace(/-/g, ' ')}</span>
         </div>
 
@@ -82,7 +82,7 @@ export default function SubcategoryPage() {
                 <h1 style={{ fontSize: '24px', fontWeight: '800', letterSpacing: '1px', marginBottom: '5px' }}>{formattedTitle}</h1>
                 <p style={{ fontSize: '13px', color: '#888', margin: 0 }}>Showing {products.length} stunning styles</p>
               </div>
-              
+
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                 <span style={{ fontSize: '12px', fontWeight: '700', color: '#888', textTransform: 'uppercase', letterSpacing: '1px' }}>Sort By:</span>
                 <select style={{ padding: '10px 15px', border: '1px solid #eee', borderRadius: '4px', outline: 'none', fontSize: '13px', fontWeight: '600', background: '#fff', cursor: 'pointer' }}>
@@ -96,11 +96,11 @@ export default function SubcategoryPage() {
 
             {/* Product Grid */}
             <div className="product-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '30px' }}>
-              {(loading ? [1,2,3,4,5,6] : (Array.isArray(products) ? products : [])).map((product, i) => (
+              {(loading ? [1, 2, 3, 4, 5, 6] : (Array.isArray(products) ? products : [])).map((product, i) => (
                 <Link key={loading ? i : product._id} href={`/product/${product.slug}`} className="product-card-item" style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div className="product-image-box" style={{ position: 'relative', width: '100%', aspectRatio: '2/3', overflow: 'hidden', borderRadius: '12px', backgroundColor: '#f9f9f9', transition: 'all 0.4s ease' }}>
-                    <img 
-                      src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)} 
+                    <img
+                      src={resolveImageUrl(product.images?.[0]) || getProductFallbackImage(product.name)}
                       alt={product.name}
                       style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.6s ease' }}
                     />
