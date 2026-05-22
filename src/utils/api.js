@@ -4,11 +4,11 @@ const getBaseUrl = () => {
   }
   if (typeof window !== 'undefined') {
     if (!window.location.hostname.includes('localhost')) {
-      return 'https://bluebreery-backend-1.onrender.com';
+      return 'https://blueberries-pbvb.onrender.com';
     }
   }
   if (process.env.NODE_ENV === 'production') {
-    return 'https://bluebreery-backend-1.onrender.com';
+    return 'https://blueberries-pbvb.onrender.com';
   }
   return 'http://localhost:5001';
 };
@@ -40,7 +40,7 @@ export const resolveImageUrl = (url) => {
   }
   
   // If it is a production Render URL, it is public and fully valid. Keep it intact!
-  if (url.startsWith('https://bluebreery-backend-1.onrender.com')) {
+  if (url.startsWith('https://blueberries-pbvb.onrender.com')) {
     return url;
   }
   
